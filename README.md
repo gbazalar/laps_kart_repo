@@ -1,2 +1,2 @@
-# laps_kart_repo
+# LAPs Autonomous Kart Project
 Repository for the Autonomous Kart Project in LAPS Clubs
