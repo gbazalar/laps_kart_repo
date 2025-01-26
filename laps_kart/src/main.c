@@ -3,5 +3,4 @@
 int main(void){
     internal_clock();
 
-
 }
