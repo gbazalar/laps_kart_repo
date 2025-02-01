@@ -1,41 +1,27 @@
 #include "stm32f4xx.h"
 
 void internal_clock() {
-    /* Enable HSE (High-Speed External) oscillator */
-    RCC->CR |= RCC_CR_HSEON;
+    RCC->CR |= RCC_CR_HSION;  // Enable HSI
+    while ((RCC->CR & RCC_CR_HSIRDY) == 0);  // Wait until HSI is ready
 
-    /* Wait till HSE is ready */
-    while ((RCC->CR & RCC_CR_HSERDY) == 0);
+    RCC->CR &= ~RCC_CR_HSEON;
+    
+    FLASH->ACR = FLASH_ACR_PRFTEN | FLASH_ACR_ICEN | FLASH_ACR_DCEN | FLASH_ACR_LATENCY_5WS;
+    
+    RCC->CFGR |= (uint32_t)RCC_CFGR_HPRE_DIV1;
+    RCC->CFGR |= (uint32_t)RCC_CFGR_PPRE1_DIV4;
+    RCC->CFGR |= RCC_CFGR_PPRE2_DIV2;
 
-    /* Configure the Flash prefetch and latency settings */
-    FLASH->ACR |= FLASH_ACR_PRFTEN;   // Enable Prefetch Buffer
-    FLASH->ACR |= FLASH_ACR_ICEN;    // Instruction Cache Enable
-    FLASH->ACR |= FLASH_ACR_DCEN;    // Data Cache Enable
-    FLASH->ACR |= FLASH_ACR_LATENCY_3WS; // Set 3 wait states (48 MHz or above)
+    /* Reset PLL settings */
+    RCC->PLLCFGR &= ~(RCC_PLLCFGR_PLLSRC | RCC_PLLCFGR_PLLM | RCC_PLLCFGR_PLLN | RCC_PLLCFGR_PLLP | RCC_PLLCFGR_PLLQ);
 
-    /* Configure PLL */
-    // PLLM = 8, PLLN = 336, PLLP = 2, PLLQ = 7
-    RCC->PLLCFGR = (8 << RCC_PLLCFGR_PLLM_Pos)    // PLLM: Divide HSE by 8
-                 | (336 << RCC_PLLCFGR_PLLN_Pos)  // PLLN: Multiply by 336
-                 | (0 << RCC_PLLCFGR_PLLP_Pos)    // PLLP: Divide by 2
-                 | (7 << RCC_PLLCFGR_PLLQ_Pos)    // PLLQ: Divide by 7
-                 | RCC_PLLCFGR_PLLSRC_HSE;       // Select HSE as PLL source
-
-    /* Enable PLL */
+    /* Set PLL source to HSI, set M, N, P, and Q values */
+    RCC->PLLCFGR |= (RCC_PLLCFGR_PLLSRC_HSI | (8 << RCC_PLLCFGR_PLLM_Pos) | (180 << RCC_PLLCFGR_PLLN_Pos) | (0b00 << RCC_PLLCFGR_PLLP_Pos) | (4 << RCC_PLLCFGR_PLLQ_Pos));
+    
     RCC->CR |= RCC_CR_PLLON;
+    while ((RCC->CR & RCC_CR_PLLRDY) == 0);  // Wait until PLL is ready
 
-    /* Wait till PLL is ready */
-    while ((RCC->CR & RCC_CR_PLLRDY) == 0);
-
-    /* Configure AHB, APB1, and APB2 clocks */
-    RCC->CFGR |= RCC_CFGR_HPRE_DIV1;    // AHB = SYSCLK
-    RCC->CFGR |= RCC_CFGR_PPRE1_DIV4;   // APB1 = SYSCLK / 4
-    RCC->CFGR |= RCC_CFGR_PPRE2_DIV2;   // APB2 = SYSCLK / 2
-
-    /* Select PLL as system clock source */
-    RCC->CFGR &= ~RCC_CFGR_SW;          // Clear SW bits
-    RCC->CFGR |= RCC_CFGR_SW_PLL;       // Set PLL as system clock
-
-    /* Wait till PLL is used as system clock source */
+    RCC->CFGR &= (uint32_t)((uint32_t)~(RCC_CFGR_SW));
+    RCC->CFGR |= (uint32_t)RCC_CFGR_SW_PLL;
     while ((RCC->CFGR & RCC_CFGR_SWS) != RCC_CFGR_SWS_PLL);
-}
+    }
