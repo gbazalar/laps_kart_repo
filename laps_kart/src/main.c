@@ -1,6 +1,5 @@
 #include "stm32f4xx.h"
 
-<<<<<<< Updated upstream
 void internal_clock();
 void blink_led();
 void enable_pwm_read();
