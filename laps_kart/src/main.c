@@ -78,19 +78,11 @@ void TIM2_IRQHandler(void) {
 }
 
 int main(void){
-<<<<<<< Updated upstream
     internal_clock();
     blink_led();
     enable_pwm_read();
 
     while(1){
     }
-=======
-
->>>>>>> Stashed changes
-=======
-int main(void){
-
->>>>>>> Stashed changes
 
 }
