@@ -1,4 +1,6 @@
 #include "stm32f4xx.h"
+#include "usart.h"
+
 
 void internal_clock();
 void blink_led();
@@ -82,6 +84,8 @@ int main(void){
     enable_pwm_read();
 
     while(1){
+        usart_send_string("Hello, USART!\n");
+        for (volatile int i = 0; i < 1000000; i++); 
     }
 
 }
